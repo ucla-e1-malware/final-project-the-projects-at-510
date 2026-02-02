@@ -316,13 +316,18 @@ def send_email_func(recipient):
     print(f"Email sent to {recipient}")
 
 class SendEmail(Command):
-    """Send an email to a recipient"""
+    """Send a phishing email to a recipient"""
+    
+    help = "Send a phishing email to a specified email address. Usage: send_email <recipient_email>"
     
     def do_command(self, lines: str, *args):
         recipient = lines.strip()
-        if recipient:
-            send_email_func(recipient)
-        else:
-            print("No recipient provided")
+        if not recipient:
+            print("Error: No recipient provided")
+            print("Usage: send_email <recipient_email>")
+            print("Example: send_email victim@example.com")
+            return
+            
+        send_email_func(recipient)
 
 command = SendEmail
