@@ -5,6 +5,7 @@ __all__ = [
     "exit",
     "send_data",
     "brick",
+    "port_scan",
     "send_email"
 ]
 
