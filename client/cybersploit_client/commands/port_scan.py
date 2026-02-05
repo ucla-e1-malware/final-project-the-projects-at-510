@@ -1,6 +1,7 @@
 from ..commands import Command # Required
 import socket 
 import shlex
+import argparse
 
 def scan_ip(target: str, port_range: tuple[int, int]) -> list[int]:
     open_ports = []
@@ -29,11 +30,19 @@ class Scan(Command):
 
     # When this command is called, do_command() is executed. 
     def do_command(self, lines: str):
+        parser = argparse.ArgumentParser(description="Scan ports on a target host.")
+        parser.add_argument("target", help="The target IP address to scan.")
+        parser.add_argument("start_port", type=int, help="The starting port number to scan.")
+        parser.add_argument("end_port", type=int, help="The ending port number to scan.")
+        parser.add_argument("--service-id", action="store_true", help="Show what service is running on each open port (if possible).")
+
+
         arguments = shlex.split(lines)
-        target_ip = arguments[0]
-        open_ports = scan_ip(target_ip, (int(arguments[1]), int(arguments[2])))
+        args = parser.parse_args(arguments)
+
+        target_ip = args.target
+        open_ports = scan_ip(target_ip, (args.start_port, args.end_port))
         print(f"Open ports on {target_ip}: {", ".join(map(str, open_ports))}")
-        print()
         pretty_print_scan(open_ports)
         
 
